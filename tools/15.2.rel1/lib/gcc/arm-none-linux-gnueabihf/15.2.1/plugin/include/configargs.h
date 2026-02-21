@@ -1,0 +1,7 @@
+/* Generated automatically. */
+static const char configuration_arguments[] = "/tmp/jenkins-1e1af46f/workspace/GNU-toolchain/arm-15/src/gcc/configure --target=arm-none-linux-gnueabihf --prefix= --with-sysroot=/arm-none-linux-gnueabihf/libc --with-build-sysroot=/tmp/jenkins-1e1af46f/workspace/GNU-toolchain/arm-15/build-arm-none-linux-gnueabihf/install//arm-none-linux-gnueabihf/libc --with-bugurl=https://gitlab.arm.com/tooling/gnu-devtools-for-arm/-/issues/ --enable-gnu-indirect-function --enable-shared --disable-libssp --disable-libmudflap --enable-checking=release --enable-languages=c,c++,fortran --with-gmp=/tmp/jenkins-1e1af46f/workspace/GNU-toolchain/arm-15/build-arm-none-linux-gnueabihf/host-tools --with-mpfr=/tmp/jenkins-1e1af46f/workspace/GNU-toolchain/arm-15/build-arm-none-linux-gnueabihf/host-tools --with-mpc=/tmp/jenkins-1e1af46f/workspace/GNU-toolchain/arm-15/build-arm-none-linux-gnueabihf/host-tools --with-isl=/tmp/jenkins-1e1af46f/workspace/GNU-toolchain/arm-15/build-arm-none-linux-gnueabihf/host-tools --with-arch=armv7-a --with-fpu=neon --with-float=hard --with-mode=thumb --with-arch=armv7-a --with-pkgversion='Arm GNU Toolchain 15.2.Rel1 (Build arm-15.86)'";
+static const char thread_model[] = "posix";
+
+static const struct {
+  const char *name, *value;
+} configure_default_options[] = { { "cpu", "arm10e" }, { "arch", "armv7-a" }, { "float", "hard" }, { "mode", "thumb" }, { "fpu", "neon" }, { "tls", "gnu" } };
