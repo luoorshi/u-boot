@@ -61,6 +61,15 @@ config VIDEO_LOGO
 	  tools/logos/u-boot_logo.bmp and looks best when the display has a
 	  black background.
 
+config VIDEO_LOGO_NAME
+	string "Custom logo name"
+	depends on VIDEO_LOGO
+	default ""
+	help
+	  Specify a custom logo name to use instead of the board-specific logo.
+	  The logo file should be located at tools/logos/<name>.bmp.
+	  If not set, the build system will use $(BOARD).bmp or denx.bmp as fallback.
+
 config BACKLIGHT
 	bool "Enable panel backlight uclass support"
 	default y
@@ -136,6 +145,24 @@ config BACKLIGHT_GPIO
 	  This driver can be used with "simple-panel" and
 	  it understands the standard device tree
 	  (leds/backlight/gpio-backlight.txt)
+
+config VIDEO_ST7789V
+	bool "Enable ST7789V SPI LCD panel support"
+	depends on DM_SPI && DM_GPIO
+	help
+	  Enable support for the Sitronix ST7789V LCD controller (135x240 RGB565)
+	  over SPI. Uses reset-gpios and dc-gpios from device tree. SoC-agnostic;
+	  works on any platform with DM SPI and GPIO (e.g. Allwinner H3/H5, others).
+
+config VIDEO_ST7789V_SUNXI_H3
+	bool "Use Allwinner H3 PIO registers for ST7789V reset/dc GPIO"
+	depends on VIDEO_ST7789V && MACH_SUN8I_H3
+	default y if MACH_SUN8I_H3
+	help
+	  On Allwinner H3, configure PA4 (reset) and PA5 (dc) via direct PIO
+	  register access instead of DM GPIO. Avoids init-order hangs when
+	  pinctrl/GPIO are probed during stdio. Requires reset-gpios=<&pio 0 4 ...>
+	  and dc-gpios=<&pio 0 5 ...> in the device tree.
 
 config VIDEO_BPP8
 	bool "Support 8-bit-per-pixel displays"

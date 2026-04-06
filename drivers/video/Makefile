@@ -25,7 +25,41 @@ obj-$(CONFIG_PANEL_HX8238D) += hx8238d.o
 obj-$(CONFIG_$(PHASE_)SIMPLE_PANEL) += simple_panel.o
 
 obj-$(CONFIG_VIDEO_LOGO) += u_boot_logo.o
-obj-$(CONFIG_$(PHASE_)BMP) += bmp.o
+
+# Use board-specific logo (e.g. tools/logos/Lois.bmp) when CONFIG_SYS_BOARD is set
+# Or use custom logo name specified by CONFIG_VIDEO_LOGO_NAME
+
+ifdef CONFIG_VIDEO_LOGO
+LOGO_NAME := $(CONFIG_VIDEO_LOGO_NAME:"%"=%)
+ifneq ($(LOGO_NAME),)
+LOGO_SRC := $(srctree)/tools/logos/$(LOGO_NAME).bmp
+# If custom logo doesn't exist, fallback to board-specific or default logo
+ifeq ($(wildcard $(LOGO_SRC)),)
+LOGO_SRC := $(srctree)/tools/logos/$(BOARD).bmp
+ifeq ($(wildcard $(LOGO_SRC)),)
+LOGO_SRC := $(srctree)/tools/logos/denx.bmp
+endif
+endif
+else
+LOGO_SRC := $(srctree)/tools/logos/$(BOARD).bmp
+ifeq ($(wildcard $(LOGO_SRC)),)
+LOGO_SRC := $(srctree)/tools/logos/denx.bmp
+endif
+endif
+
+$(info VIDEO_LOGO: $(LOGO_SRC))
+
+$(info LOGO_SRC absolute: $(abspath $(LOGO_SRC)))
+$(info File exists: $(wildcard $(LOGO_SRC)))
+
+.PHONY: $(obj)/u_boot_logo.bmp
+$(obj)/u_boot_logo.bmp: $(LOGO_SRC)
+	$(Q)mkdir -p $(dir $@)
+	$(Q)cp -f $< $@
+	$(info Copied $(LOGO_SRC) to $@)
+
+$(obj)/u_boot_logo.o: $(obj)/u_boot_logo.bmp
+endif
 
 endif
 
@@ -88,6 +122,8 @@ obj-$(CONFIG_VIDEO_SANDBOX_SDL) += sandbox_sdl.o
 obj-$(CONFIG_VIDEO_SIMPLE) += simplefb.o
 obj-$(CONFIG_VIDEO_VESA) += vesa.o
 obj-$(CONFIG_VIDEO_SEPS525) += seps525.o
+obj-$(CONFIG_VIDEO_ST7789V) += st7789v.o
+obj-$(CONFIG_VIDEO_ST7789V) += st7789v/
 obj-$(CONFIG_VIDEO_ZYNQMP_DPSUB) += zynqmp/
 
 obj-y += bridge/
