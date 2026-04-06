@@ -16,8 +16,8 @@
 #include <dt-bindings/leds/common.h>
 
 / {
-	model = "FriendlyARM NanoPi R1S H5";
-	compatible = "friendlyarm,nanopi-r1s-h5", "allwinner,sun50i-h5";
+	model = "Quark-N Lois H5";
+	compatible = "Lois,Quark-N-h5", "allwinner,sun50i-h5";
 
 	aliases {
 		ethernet0 = &emac;

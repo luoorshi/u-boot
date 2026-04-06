@@ -48,8 +48,8 @@
 #include <dt-bindings/gpio/gpio.h>
 
 / {
-	model = "Quark luoorshi H3";
-	compatible = "luoorshi,Quark-h3", "allwinner,sun8i-h3";
+	model = "Quark-N Lois H3";
+	compatible = "Lois,Quark-N-h3", "allwinner,sun8i-h3";
 
 	aliases {
 		serial0 = &uart0;
