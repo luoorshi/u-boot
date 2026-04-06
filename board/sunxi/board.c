@@ -517,18 +517,48 @@ int board_mmc_init(struct bd_info *bis)
 	 */
 	if (!IS_ENABLED(CONFIG_UART0_PORT_F)) {
 		mmc_pinmux_setup(0);
+		/*
+		 * Cold-boot can occasionally leave the SD/MMC0 interface in an
+		 * unstable state (power/clock/card-detect). Don't fail SPL hard
+		 * here: allow other MMC slots (e.g. eMMC on MMC2) to come up.
+		 */
 		if (!sunxi_mmc_init(0))
-			return -1;
+			printf("sunxi: MMC0 init failed, continuing\n");
 	}
 
 	if (CONFIG_MMC_SUNXI_SLOT_EXTRA != -1) {
 		mmc_pinmux_setup(CONFIG_MMC_SUNXI_SLOT_EXTRA);
-		if (!sunxi_mmc_init(CONFIG_MMC_SUNXI_SLOT_EXTRA))
+		if (!sunxi_mmc_init(CONFIG_MMC_SUNXI_SLOT_EXTRA)) {
+			printf("sunxi: MMC%d init failed\n",
+			       CONFIG_MMC_SUNXI_SLOT_EXTRA);
 			return -1;
+		}
 	}
 
 	return 0;
 }
+
+#ifdef CONFIG_XPL_BUILD
+void board_boot_order(u32 *spl_boot_list)
+{
+	u32 boot = spl_boot_device();
+
+	/*
+	 * By default SPL only tries the boot source device. On boards with both
+	 * SD (MMC0 -> BOOT_DEVICE_MMC1) and eMMC (MMC2 -> BOOT_DEVICE_MMC2),
+	 * cold-boot issues on the SD path should not prevent booting from eMMC.
+	 */
+	if (boot == BOOT_DEVICE_MMC1) {
+		spl_boot_list[0] = BOOT_DEVICE_MMC1;
+		spl_boot_list[1] = BOOT_DEVICE_MMC2;
+	} else if (boot == BOOT_DEVICE_MMC2) {
+		spl_boot_list[0] = BOOT_DEVICE_MMC2;
+		spl_boot_list[1] = BOOT_DEVICE_MMC1;
+	} else {
+		spl_boot_list[0] = boot;
+	}
+}
+#endif
 
 #ifdef CONFIG_ENV_MMC_DEVICE_INDEX
 int mmc_get_env_dev(void)
