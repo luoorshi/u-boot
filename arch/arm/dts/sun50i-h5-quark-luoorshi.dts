@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
-// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 /*
  * Copyright (C) 2021 Chukun Pan <amadeus@jmu.edu.cn>
  *
@@ -53,10 +52,10 @@
 		};
 	};
 
-	r-gpio-keys {
+	gpio-keys {
 		compatible = "gpio-keys";
 
-		reset {
+		key-reset {
 			label = "reset";
 			linux,code = <KEY_RESTART>;
 			gpios = <&r_pio 0 3 GPIO_ACTIVE_LOW>;
@@ -104,7 +103,7 @@
 		states = <1100000 0x0>, <1300000 0x1>;
 	};
 
-	wifi_pwrseq: wifi_pwrseq {
+	wifi_pwrseq: pwrseq {
 		compatible = "mmc-pwrseq-simple";
 		reset-gpios = <&r_pio 0 7 GPIO_ACTIVE_LOW>; /* PL7 */
 		post-power-on-delay-ms = <200>;
@@ -158,6 +157,7 @@
 
 &mmc0 {
 	vmmc-supply = <&reg_vcc3v3>;
+	disable-wp;
 	bus-width = <4>;
 	cd-gpios = <&pio 5 6 GPIO_ACTIVE_LOW>; /* PF6 */
 	status = "okay";
@@ -171,7 +171,7 @@
 	non-removable;
 	status = "okay";
 
-	rtl8189etv: sdio_wifi@1 {
+	rtl8189etv: wifi@1 {
 		reg = <1>;
 	};
 };
@@ -193,6 +193,32 @@
 &usb_otg {
 	dr_mode = "peripheral";
 	status = "okay";
+};
+
+&spi0 {
+	status = "okay";
+	u-boot,dm-pre-reloc;
+	bootph-all;
+	pinctrl-names = "default";
+	pinctrl-0 = <&spi0_pins>;
+
+	display@0 {
+		compatible = "sitronix,st7789v";
+		reg = <0>;
+		spi-max-frequency = <32000000>;
+		/* PA1=UART2_RX (reset), PA0=UART2_TX (dc); avoid PA4/PA5 (UART0 console) */
+		reset-gpios = <&pio 0 1 GPIO_ACTIVE_LOW>;
+		dc-gpios = <&pio 0 0 GPIO_ACTIVE_HIGH>;
+		/* Display offset: X direction 0x34, Y direction 0x28 */
+		col-offset = <0x35>;
+		row-offset = <0x28>;
+		/* BGR color order */
+		rotation = <270>;
+		bgr = <1>;
+		/* bgr = <0>; */
+		u-boot,dm-pre-reloc;
+		bootph-all;
+	};
 };
 
 &usbphy {

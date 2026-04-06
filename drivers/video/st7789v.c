@@ -125,31 +125,32 @@ static int st7789v_set_window(struct udevice *dev, u16 col_start, u16 col_end,
 
 static void st7789v_set_reset_asserted(struct udevice *dev, bool asserted)
 {
-	if (IS_ENABLED(CONFIG_VIDEO_ST7789V_SUNXI_H3)) {
+#if CONFIG_IS_ENABLED(VIDEO_ST7789V_SUNXI_H3)
 		/*
 		 * For the H3 PIO path, we pass a logical value (asserted=1) and
 		 * the helper applies DTS active-low inversion to get physical.
 		 */
 		st7789v_sunxi_h3_gpio_set_value(0, asserted ? 1 : 0);
-	} else {
+#else
 		struct st7789v_priv *priv = dev_get_priv(dev);
 		/*
 		 * dm_gpio_set_value() uses logical semantics (1=active).
 		 * So always drive "asserted" here, independent of GPIO polarity.
 		 */
 		dm_gpio_set_value(&priv->reset_gpio, asserted ? 1 : 0);
-	}
+#endif
 }
 
 static int st7789v_set_dc(struct udevice *dev, int value)
 {
 	struct st7789v_priv *priv = dev_get_priv(dev);
 
-	if (IS_ENABLED(CONFIG_VIDEO_ST7789V_SUNXI_H3)) {
+#if CONFIG_IS_ENABLED(VIDEO_ST7789V_SUNXI_H3)
 		st7789v_sunxi_h3_gpio_set_value(1, value);
 		return 0;
-	}
+#else
 	return dm_gpio_set_value(&priv->dc_gpio, value);
+#endif
 }
 
 static int st7789v_write_cmd(struct udevice *dev, u8 cmd)
@@ -588,7 +589,6 @@ static int st7789v_probe(struct udevice *dev)
 {
 	struct video_priv *uc_priv = dev_get_uclass_priv(dev);
 	struct st7789v_priv *priv = dev_get_priv(dev);
-	int ret;
 
 	/* 使用serial_printf输出避免触发vidconsole的递归调用 */
 	serial_printf("Lois_debug: @st7789v.c st7789v_probe called\n");
@@ -632,10 +632,14 @@ static int st7789v_probe(struct udevice *dev)
 	priv->bgr = dev_read_bool(dev, "bgr");
 
 #if CONFIG_IS_ENABLED(VIDEO_ST7789V_SUNXI_H3)
+	{
+		int ret;
+
 	ret = st7789v_sunxi_h3_parse_dts(dev);
 	if (ret) {
 		serial_printf("Lois_debug: @st7789v.c st7789v_sunxi_h3_parse_dts failed: %d\n", ret);
 		return ret;
+	}
 	}
 #endif
 

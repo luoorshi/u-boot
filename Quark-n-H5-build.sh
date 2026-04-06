@@ -67,13 +67,13 @@ fi
 
 make clean
 
-export BL31=$(pwd)/../arm-trusted-firmware-master/build/sun50i_a64/release/bl31.bin
-export SCP=$(pwd)/../crust/build/scp/scp.bin
+export BL31=$(pwd)/../bl31.bin
+export SCP=$(pwd)/../scp.bin
 
-make quark-luoorshi-h5_defconfig  ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu-
+make quark-luoorshi-h5_defconfig  ARCH=arm CROSS_COMPILE=aarch64-none-linux-gnu-
 
-make ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- V=1 -j4 2>&1 | tee build.log
+make ARCH=arm CROSS_COMPILE=aarch64-none-linux-gnu- V=1 -j4 2>&1 | tee build.log
 
-make ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- -j4 2>&1 | tee build.log
+make ARCH=arm CROSS_COMPILE=aarch64-none-linux-gnu- -j4 2>&1 | tee build.log
 
 
