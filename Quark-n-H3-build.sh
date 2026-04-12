@@ -40,30 +40,58 @@ if [ ${#missing_tools[@]} -gt 0 ]; then
     echo ""
 fi
 
-# 检查是否已经设置了GCC环境变量
-if [[ ":$PATH:" != *"tools/15.2.rel1/bin:"* ]]; then
-    echo "检测到未设置GCC交叉编译环境变量，正在设置..."
-    # 获取脚本所在目录
-    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# ARM 交叉工具链：仓库内为压缩包，首次使用前解压到 tools/15.2.rel1-arm
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TOOLS_DIR="$SCRIPT_DIR/../tools"
+TOOLCHAIN_DIR="$TOOLS_DIR/15.2.rel1-arm"
+ARCHIVE="$TOOLS_DIR/arm-gnu-toolchain-15.2.rel1-x86_64-arm-none-linux-gnueabihf.tar.xz"
+GCC_LOCAL="$TOOLCHAIN_DIR/bin/arm-none-linux-gnueabihf-gcc"
 
-    # 设置GCC工具链路径
-    export PATH="$SCRIPT_DIR/tools/15.2.rel1/bin:$PATH"
-    export GCC_COLORS=auto
-
-    # 显示当前环境变量
-    echo "========================================="
-    echo "GCC交叉编译环境已设置"
-    echo "========================================="
-    echo "GCC工具链路径: $SCRIPT_DIR/tools/15.2.rel1/bin"
-    echo "GCC_COLORS=auto"
-    echo ""
-    echo "测试GCC版本："
-    arm-none-linux-gnueabihf-gcc -v 2>&1 | head -n 5
-    echo ""
-    echo "环境变量已设置，可以开始编译u-boot"
-    echo "========================================="
-    echo ""
+if [[ -x "$GCC_LOCAL" ]]; then
+    if [[ ":$PATH:" != *":$TOOLCHAIN_DIR/bin:"* ]]; then
+        echo "检测到已解压的本地工具链，正在加入 PATH..."
+        export PATH="$TOOLCHAIN_DIR/bin:$PATH"
+    fi
+elif command -v arm-none-linux-gnueabihf-gcc >/dev/null 2>&1; then
+    echo "已检测到 PATH 中的 arm-none-linux-gnueabihf-gcc，跳过解压。"
+else
+    if [[ ! -f "$ARCHIVE" ]]; then
+        echo "错误：未找到工具链压缩包，请将以下文件放入仓库后再编译：" >&2
+        echo "  $ARCHIVE" >&2
+        exit 1
+    fi
+    echo "正在解压 ARM GNU 工具链到 $TOOLCHAIN_DIR ..."
+    mkdir -p "$TOOLCHAIN_DIR"
+    if ! tar -xJf "$ARCHIVE" -C "$TOOLCHAIN_DIR" --strip-components=1; then
+        echo "错误：解压失败，请确认系统 tar 支持 xz（-J），且压缩包完整。" >&2
+        exit 1
+    fi
+    if [[ ! -x "$GCC_LOCAL" ]]; then
+        echo "错误：解压后未找到预期编译器: $GCC_LOCAL" >&2
+        echo "若压缩包顶层目录结构与官方包不一致，请检查包内路径并调整 --strip-components。" >&2
+        exit 1
+    fi
+    export PATH="$TOOLCHAIN_DIR/bin:$PATH"
 fi
+
+export GCC_COLORS=auto
+
+echo "========================================="
+echo "GCC 交叉编译环境"
+echo "========================================="
+if [[ -x "$GCC_LOCAL" ]]; then
+    echo "工具链路径: $TOOLCHAIN_DIR/bin"
+elif command -v arm-none-linux-gnueabihf-gcc >/dev/null 2>&1; then
+    echo "使用 PATH 中的: $(command -v arm-none-linux-gnueabihf-gcc)"
+fi
+echo "GCC_COLORS=auto"
+echo ""
+echo "测试 GCC 版本："
+arm-none-linux-gnueabihf-gcc -v 2>&1 | head -n 5
+echo ""
+echo "可以开始编译 u-boot"
+echo "========================================="
+echo ""
 
 make clean
 
