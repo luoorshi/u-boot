@@ -58,17 +58,6 @@ dtb-$(CONFIG_ROCKCHIP_RK3128) += \
 dtb-$(CONFIG_ROCKCHIP_RK322X) += \
 	rk3229-evb.dtb
 
-dtb-$(CONFIG_ROCKCHIP_RK3288) += \
-	rk3288-evb.dtb \
-	rk3288-popmetal.dtb \
-	rk3288-rock2-square.dtb \
-	rk3288-rock-pi-n8.dtb \
-	rk3288-veyron-jerry.dtb \
-	rk3288-veyron-mickey.dtb \
-	rk3288-veyron-minnie.dtb \
-	rk3288-veyron-speedy.dtb \
-	rk3288-vyasa.dtb
-
 dtb-$(CONFIG_ROCKCHIP_RK3368) += \
 	rk3368-sheep.dtb \
 	rk3368-geekbox.dtb \
@@ -469,6 +458,8 @@ dtb-$(CONFIG_ARCH_SOCFPGA) +=				\
 	socfpga_cyclone5_socrates.dtb			\
 	socfpga_cyclone5_sr1500.dtb			\
 	socfpga_cyclone5_vining_fpga.dtb		\
+	socfpga_cyclone5_ac501soc.dtb			\
+	socfpga_cyclone5_ac550soc.dtb			\
 	socfpga_n5x_socdk.dtb				\
 	socfpga_stratix10_socdk.dtb
 
@@ -1133,6 +1124,8 @@ dtb-$(CONFIG_ARCH_MEDIATEK) += \
 	mt7988-rfb.dtb \
 	mt7988-sd-rfb.dtb \
 	mt8183-pumpkin.dtb \
+	mt8371-genio-520-evk.dtb \
+	mt8391-genio-720-evk.dtb \
 	mt8512-bm1-emmc.dtb \
 	mt8516-pumpkin.dtb \
 	mt8518-ap1-emmc.dtb
