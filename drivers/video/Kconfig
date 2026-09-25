@@ -164,6 +164,26 @@ config VIDEO_ST7789V_SUNXI_H3
 	  pinctrl/GPIO are probed during stdio. Requires reset-gpios=<&pio 0 4 ...>
 	  and dc-gpios=<&pio 0 5 ...> in the device tree.
 
+config VIDEO_ST7789V_SUNXI_H5
+	bool "Use Allwinner H5 PIO registers for ST7789V reset/dc GPIO"
+	depends on VIDEO_ST7789V && MACH_SUN50I_H5
+	default y if MACH_SUN50I_H5
+	help
+	  On Allwinner H5, configure PA4 (reset) and PA5 (dc) via direct PIO
+	  register access instead of DM GPIO. Avoids init-order hangs when
+	  pinctrl/GPIO are probed during stdio. Requires reset-gpios=<&pio 0 4 ...>
+	  and dc-gpios=<&pio 0 5 ...> in the device tree.
+	  Note: H5 SoC symbol is MACH_SUN50I_H5 (not MACH_SUN8I_H5).
+
+config SUNXI_CONSOLE_NO_VIDCONSOLE
+	bool "Disable video console output (serial only)"
+	depends on ARCH_SUNXI
+	help
+	  Force stdout/stderr to serial only in the default environment, even
+	  when CONFIG_VIDEO is enabled. Keeps boot logs off the LCD.
+	  Video is still probed later in misc_init_r() so the panel and
+	  VIDEO_LOGO can display; only the text console is not muxed.
+
 config VIDEO_BPP8
 	bool "Support 8-bit-per-pixel displays"
 	default y

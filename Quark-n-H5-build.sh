@@ -95,7 +95,7 @@ echo ""
 
 make clean
 
-export BL31=$(pwd)/../arm-trusted-firmware-master/build/sun50i_a64/release/bl31.bin
+export BL31=$(pwd)/../arm-trusted-firmware/build/sun50i_a64/release/bl31.bin
 
 export SCP=$(pwd)/../crust/build/scp/scp.bin
 

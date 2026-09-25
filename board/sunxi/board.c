@@ -893,6 +893,30 @@ int misc_init_r(void)
 
 	setup_environment(gd->fdt_blob);
 
+	/*
+	 * With SYS_CONSOLE_IS_IN_ENV, video is only auto-probed when stdout
+	 * contains "vidconsole". SUNXI_CONSOLE_NO_VIDCONSOLE / ST7789 paths
+	 * force stdout=serial so boot logs stay off the LCD — but then the
+	 * panel never comes up and VIDEO_LOGO never shows. Probe video here
+	 * after DM GPIO/SPI are ready; vidconsole may register with stdio but
+	 * is not muxed into stdout, so logs remain serial-only.
+	 */
+	if (IS_ENABLED(CONFIG_VIDEO) &&
+	    (IS_ENABLED(CONFIG_SUNXI_CONSOLE_NO_VIDCONSOLE) ||
+	     IS_ENABLED(CONFIG_VIDEO_ST7789V_SUNXI_H3) ||
+	     IS_ENABLED(CONFIG_VIDEO_ST7789V_SUNXI_H5))) {
+		struct udevice *vdev;
+		int vret;
+
+		for (vret = uclass_first_device_check(UCLASS_VIDEO, &vdev);
+		     vdev;
+		     vret = uclass_next_device_check(&vdev)) {
+			if (vret)
+				printf("sunxi: Failed to probe video '%s' (%d)\n",
+				       vdev->name, vret);
+		}
+	}
+
 	return 0;
 }
 

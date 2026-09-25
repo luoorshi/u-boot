@@ -252,7 +252,7 @@
 	"stdin=serial\0"
 #endif
 
-#if defined(CONFIG_SUNXI_CONSOLE_NO_VIDCONSOLE) || defined(CONFIG_VIDEO_ST7789V_SUNXI_H3)
+#if defined(CONFIG_SUNXI_CONSOLE_NO_VIDCONSOLE) || defined(CONFIG_VIDEO_ST7789V_SUNXI_H3) || defined(CONFIG_VIDEO_ST7789V_SUNXI_H5)
 /* Serial only: avoid vidconsole so reset does not hang when ST7789V not ready */
 #define CONSOLE_STDOUT_SETTINGS \
 	"stdout=serial\0" \
