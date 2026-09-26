@@ -209,13 +209,16 @@
 		/* PA1=UART2_RX (reset), PA0=UART2_TX (dc); avoid PA4/PA5 (UART0 console) */
 		reset-gpios = <&pio 0 1 GPIO_ACTIVE_LOW>;
 		dc-gpios = <&pio 0 0 GPIO_ACTIVE_HIGH>;
-		/* Display offset: X direction 0x34, Y direction 0x28 */
-		col-offset = <0x35>;
-		row-offset = <0x28>;
-		/* BGR color order */
-		rotation = <270>;
-		bgr = <1>;
-		/* bgr = <0>; */
+		/*
+		 * Align with linux_card fb_st7789vw (ips_114inch_240_135):
+		 * ROTATION=90 -> MADCTL 0x70; set_addr_win xs+=40, ys+=53.
+		 * Driver swaps col/row-offset when rotation is 90/270, so
+		 * DT (53,40) becomes runtime (40,53).
+		 */
+		col-offset = <53>;
+		row-offset = <40>;
+		rotation = <90>;
+		/* Color: RGB565 BE on SPI in st7789v.c; MADCTL stays 0x70 (no BGR) */
 		u-boot,dm-pre-reloc;
 		bootph-all;
 	};

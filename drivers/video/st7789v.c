@@ -17,6 +17,7 @@
 #include <malloc.h>
 #include <spi.h>
 #include <video.h>
+#include <asm/byteorder.h>
 #include <asm/gpio.h>
 #include <dm/device_compat.h>
 #include <dm/device-internal.h>
@@ -86,7 +87,10 @@ struct st7789v_priv {
 
 static const u8 init_data_pixfmt[] = {0x05};
 static const u8 init_data_vcmofset[] = {0x20};
-static const u8 init_data_madctl[] = {0x08}; //0x00 OR  0x08
+/* Default MADCTL before rotation; overwritten by st7789v_set_madctl().
+ * Match linux_card fb_st7789vw: no BGR bit in base value.
+ */
+static const u8 init_data_madctl[] = {0x00};
 static const u8 init_data_porctrl[] = {0x0c, 0x0c, 0x00, 0x33, 0x33};
 static const u8 init_data_gctrl[] = {0x35};
 static const u8 init_data_vcoms[] = {0x19};
@@ -107,7 +111,7 @@ static const struct st7789v_init_cmd st7789v_init_cmds[] = {
 	{ST7789V_GCTRL, init_data_gctrl, 1, 0},
 	{ST7789V_VCOMS, init_data_vcoms, 1, 0},
 	{ST7789V_VMCTRL1, init_data_vmctrl1, 1, 0},
-	{ST7789V_VDVVRHEN, init_data_vdvvrhen, 2, 0},
+	{ST7789V_VDVVRHEN, init_data_vdvvrhen, 1, 0},
 	{ST7789V_VRHS, init_data_vrhs, 1, 0},
 	{ST7789V_VDVS, init_data_vdvs, 1, 0},
 	{ST7789V_FRCTRL2, init_data_frctrl2, 1, 0},
@@ -298,28 +302,31 @@ static int st7789v_clear_screen(struct udevice *dev)
 
 static int st7789v_set_madctl(struct udevice *dev, int rotation)
 {
-	struct st7789v_priv *priv = dev_get_priv(dev);
 	u8 madctl = 0;
 
+	/*
+	 * Match linux_card fb_st7789vw.c ROTATION values (no BGR):
+	 *   0 -> 0x00, 90 -> 0x70, 180 -> 0xC0, 270 -> 0xA0
+	 * Color fix is RGB565 big-endian on SPI (see sync), not MADCTL BGR.
+	 */
 	switch (rotation) {
 	case 90:
-		madctl |= MADCTL_MV | MADCTL_MY;
+		madctl = 0x70;
 		break;
 	case 180:
-		madctl |= MADCTL_MX | MADCTL_MY;
+		madctl = 0xC0;
 		break;
 	case 270:
-		madctl |= MADCTL_MV | MADCTL_MX;
+		madctl = 0xA0;
 		break;
 	default:
+		madctl = 0x00;
 		break;
 	}
 
-	if (priv->bgr)
-		madctl |= MADCTL_BGR;
-
 	/* 使用serial_printf输出避免触发vidconsole的递归调用 */
-	serial_printf("Lois_debug: @st7789v.c st7789v_set_madctl madctl=0x%02X\n", madctl);
+	serial_printf("Lois_debug: @st7789v.c st7789v_set_madctl rot=%d madctl=0x%02X (no BGR, SPI BE16)\n",
+		      rotation, madctl);
 	return st7789v_write_cmd_param(dev, MIPI_DCS_SET_ADDRESS_MODE, &madctl, 1);
 }
 
@@ -548,19 +555,35 @@ static int st7789v_sync(struct udevice *vid)
 	if (ret)
 		goto release;
 
-	/* 设置 DC 一次，然后连续发送多行数据 */
+	/* 设置 DC 一次，然后连续发送多行数据（RGB565 big-endian，同 fbtft） */
 	ret = st7789v_set_dc(dev, 1);
 	if (ret)
 		goto release;
 
 	fb_ptr = (const u8 *)uc_priv->fb;
-	for (y = 0; y < log_height; y++) {
-		/* 逐行按 stride 发送 framebuffer */
-		ret = dm_spi_xfer(dev, line_bytes * 8,
-				  (void *)(fb_ptr + y * line_bytes),
-				  NULL, SPI_XFER_BEGIN | SPI_XFER_END);
-		if (ret)
-			break;
+	{
+		u16 *line_be;
+		size_t px = (size_t)log_width;
+		size_t x;
+
+		line_be = malloc(px * sizeof(u16));
+		if (!line_be) {
+			ret = -ENOMEM;
+			goto release;
+		}
+
+		for (y = 0; y < log_height; y++) {
+			const u16 *src = (const u16 *)(fb_ptr + y * line_bytes);
+
+			for (x = 0; x < px; x++)
+				line_be[x] = cpu_to_be16(src[x]);
+
+			ret = dm_spi_xfer(dev, px * 16, line_be, NULL,
+					  SPI_XFER_BEGIN | SPI_XFER_END);
+			if (ret)
+				break;
+		}
+		free(line_be);
 	}
 
 release:
