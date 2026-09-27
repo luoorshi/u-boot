@@ -19,3 +19,6 @@ sudo apt install -y libssl-dev
 sudo apt install -y openssl
 sudo apt install -y binutils-multiarch
 sudo apt install -y libgnutls28-dev
+sudo apt install -y bash-completion
+sudo apt install -y git-lfs
+sudo apt install -y bc
