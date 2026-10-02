@@ -72,7 +72,7 @@ config DYNAMIC_CRC_TABLE
 	  This can be helpful when reducing the size of the build image
 
 config SUPPORTS_FW_LOADER
-	bool
+	def_bool y
 	depends on CMDLINE
 	depends on ENV_SUPPORT
 
@@ -285,7 +285,7 @@ config PANIC_HANG
 
 config REGEX
 	bool "Enable regular expression support"
-	default y if NET
+	default y if NET_LEGACY
 	help
 	  If this variable is defined, U-Boot is linked against the
 	  SLRE (Super Light Regular Expression) library, which adds
@@ -1294,6 +1294,15 @@ config SPL_LMB_ARCH_MEM_MAP
 	  consideration when adding memory ranges to the list of available
 	  memory map. Enable this config in such scenarios which allow
 	  architectures and boards to define their own memory map.
+
+config LMB_LIMIT_DMA_BELOW_RAM_TOP
+	bool
+	depends on LMB
+	default y if ARCH_BCM283X || ARCH_ROCKCHIP
+	help
+	  Some architectures can not DMA above ram_top boundary,
+	  which is after 4 GiB or 32-bit boundary too. Limit the
+	  available memory to memory below ram_top boundary.
 
 config PHANDLE_CHECK_SEQ
 	bool "Enable phandle check while getting sequence number"

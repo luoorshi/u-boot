@@ -858,6 +858,7 @@ config MMC_MTK
 	bool "MediaTek SD/MMC Card Interface support"
 	depends on ARCH_MEDIATEK || ARCH_MTMIPS || ARCH_AIROHA
 	depends on OF_CONTROL
+	imply LMB_LIMIT_DMA_BELOW_RAM_TOP
 	help
 	  This selects the MediaTek(R) Secure digital and Multimedia card Interface.
 	  If you have a machine with a integrated SD/MMC card reader, say Y here.
@@ -924,7 +925,7 @@ config ESDHCI_QUIRK_BROKEN_TIMEOUT_VALUE
 
 config FSL_ESDHC_IMX
 	bool "Freescale/NXP i.MX eSDHC controller support"
-	depends on MACH_IMX
+	depends on MACH_IMX || M68K
 	help
 	  This selects support for the i.MX eSDHC (Enhanced Secure Digital Host
 	  Controller) found on numerous Freescale/NXP SoCs.

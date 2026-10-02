@@ -24,11 +24,18 @@ obj-$(CONFIG_$(PHASE_)PANEL) += panel-uclass.o
 obj-$(CONFIG_PANEL_HX8238D) += hx8238d.o
 obj-$(CONFIG_$(PHASE_)SIMPLE_PANEL) += simple_panel.o
 
-obj-$(CONFIG_VIDEO_LOGO) += u_boot_logo.o
+obj-$(CONFIG_VIDEO_LOGO) += u_boot_logo.bmp.o
+obj-$(CONFIG_$(PHASE_)BMP) += bmp.o
 
-# Use board-specific logo (e.g. tools/logos/Lois.bmp) when CONFIG_SYS_BOARD is set
-# Or use custom logo name specified by CONFIG_VIDEO_LOGO_NAME
-
+# Quark local: choose which BMP is compiled in as the U-Boot splash logo.
+#
+# Upstream always builds drivers/video/u_boot_logo.bmp through the generic
+# %.bmp.S -> %.bmp.o rule (scripts/Makefile.lib-u-boot). cmd_S_splash derives
+# the __splash_* symbols from the file name, so the staged image MUST keep
+# the u_boot_logo.bmp name for the symbol names to match what the splash
+# code looks up. We therefore only swap the *contents* of that file.
+#
+# Selection order: CONFIG_VIDEO_LOGO_NAME -> $(BOARD) -> denx
 ifdef CONFIG_VIDEO_LOGO
 LOGO_NAME := $(CONFIG_VIDEO_LOGO_NAME:"%"=%)
 ifneq ($(LOGO_NAME),)
@@ -49,16 +56,12 @@ endif
 
 $(info VIDEO_LOGO: $(LOGO_SRC))
 
-$(info LOGO_SRC absolute: $(abspath $(LOGO_SRC)))
-$(info File exists: $(wildcard $(LOGO_SRC)))
-
-.PHONY: $(obj)/u_boot_logo.bmp
-$(obj)/u_boot_logo.bmp: $(LOGO_SRC)
+# FORCE so the selection is applied even when the checked-in
+# drivers/video/u_boot_logo.bmp is newer than $(LOGO_SRC).
+$(obj)/u_boot_logo.bmp: $(LOGO_SRC) FORCE
 	$(Q)mkdir -p $(dir $@)
 	$(Q)cp -f $< $@
-	$(info Copied $(LOGO_SRC) to $@)
-
-$(obj)/u_boot_logo.o: $(obj)/u_boot_logo.bmp
+	$(info Staged $(LOGO_SRC) -> $@)
 endif
 
 endif
@@ -95,6 +98,7 @@ obj-$(CONFIG_VIDEO_LCD_ENDEAVORU) += endeavoru-panel.o
 obj-$(CONFIG_VIDEO_LCD_HIMAX_HX8394) += himax-hx8394.o
 obj-$(CONFIG_VIDEO_LCD_HITACHI_TX10D07VM0BAA) += hitachi-tx10d07vm0baa.o
 obj-$(CONFIG_VIDEO_LCD_HITACHI_TX18D42VM) += hitachi_tx18d42vm_lcd.o
+obj-$(CONFIG_VIDEO_LCD_ILITEK_ILI9806E) += ilitek-ili9806e.o
 obj-$(CONFIG_VIDEO_LCD_LG_LD070WX3) += lg-ld070wx3.o
 obj-$(CONFIG_VIDEO_LCD_LG_LH400WV3) += lg-lh400wv3-sd04.o
 obj-$(CONFIG_VIDEO_LCD_MOT) += mot-panel.o
