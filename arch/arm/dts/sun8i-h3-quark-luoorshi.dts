@@ -157,10 +157,15 @@
 	};
 };
 
+/*
+ * eMMC is the hardware MMC2 controller at 0x1c11000.
+ * sunxi-u-boot.dtsi aliases it to U-Boot device 1 (mmc1 = &mmc2).
+ */
 &mmc2 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&mmc2_8bit_pins>;
 	vmmc-supply = <&reg_vcc3v3>;
+	vqmmc-supply = <&reg_vcc3v3>;
 	bus-width = <8>;
 	non-removable;
 	cap-mmc-hw-reset;
